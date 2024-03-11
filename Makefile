@@ -9,6 +9,7 @@ EFLAGS =
 DISPLAY = $(shell ${RACKET} -e "(begin (require setup/cross-system) (display (if (eq? (cross-system-type 'os) 'windows) \"display.exe\" \"display\")))")
 UPDATE = $(shell ${RACKET} -e "(begin (require setup/cross-system) (display (if (eq? (cross-system-type 'os) 'windows) \"update.exe\" \"update\")))")
 ARCHIVE = display-note.zip
+UPDATE_DEPS = update.rkt installer.rkt database.rkt content.rkt
 
 all: deps build $(ARCHIVE)
 
@@ -19,13 +20,13 @@ $(ARCHIVE): $(DISPLAY) $(UPDATE)
 	$(RACO) dist display-note $^
 	zip -r $@ display-note
 
-build: $(UPDATE)
-	$(abspath $<)
+build: $(UPDATE_DEPS)
+	$(RACKET_FOR_BUILD) $<
 
 $(DISPLAY): main.rkt database.rkt
 	$(RACO) exe $(DFLAGS) $(EFLAGS) -o $@ $<
 
-$(UPDATE): update.rkt installer.rkt database.rkt content.rkt
+$(UPDATE): $(UPDATE_DEPS)
 	$(RACO) exe $(UFLAGS) $(EFLAGS) -o $@ $<
 
 deps:
