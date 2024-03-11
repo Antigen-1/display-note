@@ -1,5 +1,5 @@
 #lang info
-(define collection "note")
+(define collection "display-note")
 (define racket-launcher-names (list "display-note" "update-note"))
 (define racket-launcher-libraries (list "main.rkt" "update.rkt"))
 (define install-collection "installer.rkt")
