@@ -10,7 +10,7 @@ DISPLAY = $(shell ${RACKET} -e "(begin (require setup/cross-system) (display (if
 UPDATE = $(shell ${RACKET} -e "(begin (require setup/cross-system) (display (if (eq? (cross-system-type 'os) 'windows) \"update.exe\" \"update\")))")
 ARCHIVE = display-note.zip
 
-all: deps $(ARCHIVE)
+all: deps build $(ARCHIVE)
 
 run: $(DISPLAY)
 	$(abspath $<) --launch-browser --banner
