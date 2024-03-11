@@ -38,7 +38,7 @@
   (make-parent-directory* pollen-build)
   (make-directory* pollen-build)
 
-  (git-checkout "github.com" "Antigen-1/note.git" #:transport transport #:dest-dir dest)
+  (git-checkout "github.com" "Antigen-1/note.git" #:transport transport #:dest-dir note-root)
 
   (make-database-file database)
   (call/database/update
