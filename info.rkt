@@ -7,4 +7,5 @@
                    "web-server-lib"
                    "pollen"
                    "sugar"
+                   "txexpr"
                    "git://github.com/Antigen-1/hasket.git"))
