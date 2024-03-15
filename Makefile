@@ -12,6 +12,7 @@ DISPLAY = $(shell ${RACKET} -e "(begin (require setup/cross-system) (display (if
 #UPDATE = $(shell ${RACKET} -e "(begin (require setup/cross-system) (display (if (eq? (cross-system-type 'os) 'windows) \"update.exe\" \"update\")))")
 ARCHIVE = display-note.zip
 UPDATE_DEPS = update.rkt installer.rkt database.rkt content.rkt
+PKGS = pollen sugar txexpr "git://github.com/Antigen-1/hasket.git"
 
 all: deps build $(ARCHIVE)
 
@@ -32,7 +33,7 @@ $(DISPLAY): main.rkt database.rkt
 #	$(RACO) exe ++lang pollen ++lang pollen/markup ++lang pollen/markdown ++lang racket ++lib sugar/list ++lib hasket ++lib txexpr $(UFLAGS) $(EFLAGS) -o $@ $<
 
 deps:
-	$(RACO) pkg install --deps search-auto --skip-installed pollen sugar "git://github.com/Antigen-1/hasket.git"
+	$(RACO) pkg install --deps search-auto --skip-installed $(PKGS)
 
 clean:
 	-rm -rf display-note* $(DISPLAY) build xexpr #$(UPDATE)
