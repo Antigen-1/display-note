@@ -33,29 +33,36 @@
   (define (last-name p)
     (call-with-values (lambda () (split-path p)) (lambda l (last (filter values l)))))
 
-  (delete-directory/files build #:must-exist? #f)
-  (make-directory* xexpr)
-  (make-parent-directory* pollen-build)
-  (make-directory* pollen-build)
+  ;; Cannot use call-with-build-lock here
+  (let loop ()
+    (call-with-file-lock/timeout
+     build
+     'exclusive
+     (lambda ()
+       (git-checkout "github.com" "Antigen-1/note.git" #:transport transport #:dest-dir note-root)
 
-  (git-checkout "github.com" "Antigen-1/note.git" #:transport transport #:dest-dir note-root)
+       (delete-directory/files build #:must-exist? #f)
+       (make-directory* xexpr)
+       (make-parent-directory* pollen-build)
+       (make-directory* pollen-build)
 
-  (make-database-file database)
-  (call/database/update
-   database
-   (lambda (db)
-     (for/fold ((db db)) ((src (in-list (filter page? (directory-list pollen)))))
-       (database-set db
-                     (path->string (get-html src))
-                     (page-xexpr->list (get-doc (build-path pollen src)))))))
+       (make-database-file database)
+       (call/database/update
+        database
+        (lambda (db)
+          (for/fold ((db db)) ((src (in-list (filter page? (directory-list pollen)))))
+            (database-set db
+                          (path->string (get-html src))
+                          (page-xexpr->list (get-doc (build-path pollen src)))))))
 
-  (for ((css-p (in-list (directory-list #:build? #f source))) #:when (regexp-match #rx"\\.css\\.p.*$" css-p))
-    (call-with-output-file (build-path pollen-build (path-replace-extension css-p #""))
-      #:exists 'truncate/replace
-      (lambda (out) (display (get-doc (build-path source css-p)) out))))
+       (for ((css-p (in-list (directory-list #:build? #f source))) #:when (regexp-match #rx"\\.css\\.p.*$" css-p))
+         (call-with-output-file (build-path pollen-build (path-replace-extension css-p #""))
+           #:exists 'truncate/replace
+           (lambda (out) (display (get-doc (build-path source css-p)) out))))
 
-  (map (lambda (f/d) (copy-directory/files f/d (build-path build (last-name f/d)))) (list xexpr images htdocs))
+       (map (lambda (f/d) (copy-directory/files f/d (build-path build (last-name f/d)))) (list xexpr images htdocs))
 
-  (delete-directory/files note-root)
+       (delete-directory/files note-root))
+     (lambda () (loop))))
 
   )

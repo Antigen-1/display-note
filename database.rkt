@@ -2,18 +2,9 @@
 (provide call/database/update read-database make-database-file
          database-set database-ref database-names database-xexprs database-pairs)
 
-(define (read-database f)
-  (call-with-file-lock/timeout
-   f
-   'shared
-   (lambda () (file->value f))
-   (lambda () (read-database f))))
+(define (read-database f) (file->value f))
 (define (write-database d f)
-  (call-with-file-lock/timeout
-   f
-   'exclusive
-   (lambda () (write-to-file d f #:exists 'truncate/replace))
-   (lambda () (write-database d f))))
+  (write-to-file d f #:exists 'truncate/replace))
 
 (define (call/database/update f p)
   (write-database (p (read-database f)) f))

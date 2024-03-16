@@ -1,15 +1,12 @@
 #lang racket
 (require hasket
          web-server/formlets web-server/servlet web-server/servlet-env
-         racket/runtime-path
-         "database.rkt"
+         "database.rkt" "build_lock.rkt"
          (for-syntax racket racket/syntax))
-
-(define-runtime-path build "build")
 
 (define database (build-path build "xexpr" "db.rktd"))
 
-(define data (read-database database))
+(define data (call-with-build-lock #:mode 'shared (lambda () (read-database database))))
 (define names (database-names data))
 
 (define servlet-path "/servlets/note")

@@ -1,16 +1,26 @@
 #lang racket
-(require "installer.rkt" racket/runtime-path)
+(require "installer.rkt" "build_lock.rkt")
 
-(define-runtime-path build "build")
+(module* function #f
+  (provide (contract-out (update (->* () ((or/c 'https #;'http 'git)) any))))
+  (define (update (transport 'https))
+    (define temp (make-temporary-directory "temp~a"))
+    (define sub-build (build-path temp "build"))
 
-(define/contract transport
-  (or/c 'https #;'http 'git)
-  (cond ((getenv "NOTE_TRANSPORT") => string->symbol) (else 'https)))
+    (installer #f temp #:dest-dir (make-temporary-directory "note~a" #:base-dir temp) #:transport transport)
 
-(define temp (make-temporary-directory "temp~a"))
-(define sub-build (build-path temp "build"))
+    (call-with-build-lock
+     #:mode 'exclusive
+     (lambda ()
+       (delete-directory/files build #:must-exist? #f)
+       (copy-directory/files sub-build build)))
 
-(delete-directory/files build #:must-exist? #f)
-(installer #f temp #:dest-dir (make-temporary-directory "note~a" #:base-dir temp) #:transport transport)
-(copy-directory/files sub-build build)
-(delete-directory/files temp)
+    (delete-directory/files temp)))
+
+(module* main racket
+  (require (submod ".." function))
+
+  (define/contract transport
+    (or/c 'https #;'http 'git)
+    (cond ((getenv "NOTE_TRANSPORT") => string->symbol) (else 'https)))
+  (update transport))
