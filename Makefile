@@ -8,6 +8,7 @@ UFLAGS =
 EFLAGS =
 DISPLAY = $(shell ${RACKET} -e "(begin (require setup/cross-system) (display (if (eq? (cross-system-type 'os) 'windows) \"display.exe\" \"display\")))")
 UPDATE = $(shell ${RACKET} -e "(begin (require setup/cross-system) (display (if (eq? (cross-system-type 'os) 'windows) \"update.exe\" \"update\")))")
+LOCK = $(shell ${RACKET} -e "(display (make-lock-file-name \"build\"))")
 ARCHIVE = display-note.zip
 UPDATE_DEPS = update.rkt installer.rkt database.rkt content.rkt
 PKGS = pollen sugar txexpr "git://github.com/Antigen-1/hasket.git"
@@ -39,4 +40,4 @@ deps:
 	$(RACO) pkg install --deps search-auto --skip-installed $(PKGS)
 
 clean:
-	-rm -rf display-note* $(DISPLAY) build xexpr $(UPDATE) $(COLLECTS)
+	-rm -rf display-note* $(DISPLAY) build xexpr $(UPDATE) $(COLLECTS) $(LOCK)
