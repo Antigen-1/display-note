@@ -6,9 +6,6 @@
 
 (define database (build-path build "xexpr" "db.rktd"))
 
-(define data (call-with-build-lock #:mode 'shared (lambda () (read-database database))))
-(define names (database-names data))
-
 (define servlet-path "/servlets/note")
 
 ;; Response
@@ -81,7 +78,9 @@
             ,@(formlet-display form))))))
 
 ;; Handlers and renders
-(define (start req)
+(define ((make-start data) req)
+  (define names (database-names data))
+
   (define (response-generator embed/url)
     (render-page
      `((h1 "Hi, there!")
@@ -210,7 +209,7 @@
                 )))))))))
 
   (define (return-to-index-handler embed/url)
-    (start (redirect/get)))
+    ((make-start data) (redirect/get)))
 
   (define (add-common-suffix embed/url nodes)
     `(,@nodes
@@ -280,37 +279,40 @@
           (map cdr sorted)
           start
           null)))))
-(parse-command-line-arguments
- (("--port" p ((vector-ref port 1)) (vector-set! port 0 (string->number p)))
-  ("--stats" ((vector-ref stats? 1))
-             (call-with-values
-              (lambda ()
-                (for/fold ((total 0) (pages null)) ((pair (in-list (database-pairs data))))
-                  (define len (length (cdr pair)))
-                  (values (+ total len)
-                          (cons (cons (car pair) len) pages))))
-              (display . format-statistics))
-             (exit)))
- connection-close?
- launch-browser?
- quit?
- banner?
- listen-ip
- ssl?
- ssl-cert
- ssl-key
- )
-(serve
- start
- ((#:extra-files-paths (list build))
-  (#:servlet-path servlet-path))
- connection-close?
- launch-browser?
- quit?
- banner?
- listen-ip
- port
- ssl?
- ssl-cert
- ssl-key
- )
+(call-with-build-lock
+ #:mode 'shared
+ (lambda ()
+   (parse-command-line-arguments
+    (("--port" p ((vector-ref port 1)) (vector-set! port 0 (string->number p)))
+     ("--stats" ((vector-ref stats? 1))
+                (call-with-values
+                 (lambda ()
+                   (for/fold ((total 0) (pages null)) ((pair (in-list (database-pairs (read-database database)))))
+                     (define len (length (cdr pair)))
+                     (values (+ total len)
+                             (cons (cons (car pair) len) pages))))
+                 (display . format-statistics))
+                (exit)))
+    connection-close?
+    launch-browser?
+    quit?
+    banner?
+    listen-ip
+    ssl?
+    ssl-cert
+    ssl-key
+    )
+   (serve
+    (make-start (read-database database))
+    ((#:extra-files-paths (list build))
+     (#:servlet-path servlet-path))
+    connection-close?
+    launch-browser?
+    quit?
+    banner?
+    listen-ip
+    port
+    ssl?
+    ssl-cert
+    ssl-key
+    )))
