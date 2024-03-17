@@ -27,7 +27,7 @@
                         "药理学.html.pm"))
 
   (define (page? p)
-    (and (or (path-has-extension? p #".html.pm") (path-has-extension? p #".html.pmd"))
+    (and (path-has-extension? p #".html.pm")
          (not (findf (lambda (i) (string=? i (path->string p))) indexes))))
   (define (get-html p) (path-replace-extension p #""))
   (define (last-name p)

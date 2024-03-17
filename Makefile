@@ -32,7 +32,7 @@ $(DISPLAY): main.rkt database.rkt
 
 $(UPDATE): $(UPDATE_DEPS)
 	$(RACO) $(EXE) \
-		++lang pollen ++lang pollen/markup ++lang pollen/markdown ++lang racket \
+		++lang pollen ++lang pollen/markup ++lang racket \
 		++lib sugar/list ++lib hasket ++lib txexpr ++lib pollen/top ++lib pollen/private/runtime-config \
 		$(UFLAGS) $(EFLAGS) -o $@ $<
 
